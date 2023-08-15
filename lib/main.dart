@@ -67,9 +67,12 @@ class _MyAppState extends State<MyApp> {
                                             .coord =
                                         await determinePosition()
                                             .then((LatLng position) {
+                                      coord = LatLng(position.latitude,
+                                          position.longitude);
                                       return LatLng(position.latitude,
                                           position.longitude);
                                     });
+
                                     mapController.move(
                                         coord, mapController.zoom);
                                     setState(() {});
@@ -96,9 +99,7 @@ class _MyAppState extends State<MyApp> {
                                     LatLng(point.latitude, point.longitude);
                                 setState(() {});
                               },
-                              center: FirstPageWidgetProvider.of(context)!
-                                  .model
-                                  .coord,
+                              center: coord,
                               zoom: 7,
                               maxZoom: 18.0,
                             ),
@@ -117,9 +118,7 @@ class _MyAppState extends State<MyApp> {
                               MarkerLayer(
                                 markers: [
                                   Marker(
-                                    point: FirstPageWidgetProvider.of(context)!
-                                        .model
-                                        .coord,
+                                    point: coord,
                                     builder: (context) => const Icon(
                                       Icons.pin_drop,
                                       color: Colors.green,
@@ -146,13 +145,6 @@ class _MyAppState extends State<MyApp> {
 
 class FirstPageWidgetModel extends ChangeNotifier {
   LatLng coord = LatLng(42.7629600, 11.1094100);
-  LatLng coordCheck = LatLng(42.7629600, 11.1094100);
-  void check() {
-    if (coord != coordCheck) {
-      coordCheck = coord;
-      notifyListeners();
-    }
-  }
 }
 
 class FirstPageWidgetProvider extends InheritedWidget {

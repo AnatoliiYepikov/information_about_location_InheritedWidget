@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:information_about_location_inheritedwidget/data/coordinates/coordinates.dart';
+import 'package:information_about_location_inheritedwidget/widgets/button_widget/button_widget.dart';
 import 'package:information_about_location_inheritedwidget/widgets/city_widget/city_widget.dart';
-import 'package:information_about_location_inheritedwidget/widgets/map_widget/map_widget.dart';
+//import 'package:information_about_location_inheritedwidget/widgets/map_widget/map_widget.dart';
 import 'package:information_about_location_inheritedwidget/widgets/solar_day_widget/solar_day_widget.dart';
 import 'package:information_about_location_inheritedwidget/widgets/weather_widget/weather_widget.dart';
 
@@ -19,6 +22,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final FirstPageWidgetModel _model = FirstPageWidgetModel();
+  MapController mapController = MapController();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -26,28 +31,112 @@ class _MyAppState extends State<MyApp> {
         body: SafeArea(
           child: FirstPageWidgetProvider(
             model: _model,
-            child: Column(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    children: [
-                      CityWidget(),
-                      Row(
-                        children: [
-                          WeatherWidget(),
-                          SolarDayWidget(),
-                        ],
-                      )
-                    ],
+            child: Builder(builder: (context) {
+              LatLng coord = FirstPageWidgetProvider.of(context)!.model.coord;
+              return Column(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      children: [
+                        CityWidget(),
+                        Row(
+                          children: [
+                            WeatherWidget(),
+                            SolarDayWidget(),
+                          ],
+                        )
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  flex: 5,
-                  child: MapWidget(),
-                ),
-              ],
-            ),
+                  Expanded(
+                    flex: 5,
+                    child: Column(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Row(
+                            children: [
+                              LayoutBuilder(builder: (BuildContext context,
+                                  BoxConstraints constraints) {
+                                return IconButton(
+                                  iconSize: constraints.maxHeight,
+                                  onPressed: () async {
+                                    FirstPageWidgetProvider.of(context)!
+                                            .model
+                                            .coord =
+                                        await determinePosition()
+                                            .then((LatLng position) {
+                                      return LatLng(position.latitude,
+                                          position.longitude);
+                                    });
+                                    mapController.move(
+                                        coord, mapController.zoom);
+                                    setState(() {});
+                                  },
+                                  icon: Image.asset(
+                                    'assets/icons/earth_arrow.png',
+                                  ),
+                                );
+                              }),
+                              ButtonWidget(),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          flex: 5,
+                          child: FlutterMap(
+                            mapController: mapController,
+                            options: MapOptions(
+                              onTap: (tapPosition, point) {
+                                mapController.move(point, mapController.zoom);
+                                FirstPageWidgetProvider.of(context)
+                                        ?.model
+                                        .coord =
+                                    LatLng(point.latitude, point.longitude);
+                                setState(() {});
+                              },
+                              center: FirstPageWidgetProvider.of(context)!
+                                  .model
+                                  .coord,
+                              zoom: 7,
+                              maxZoom: 18.0,
+                            ),
+                            nonRotatedChildren: [
+                              AttributionWidget.defaultWidget(
+                                source: 'OpenStreetMap contributors',
+                                onSourceTapped: null,
+                              ),
+                            ],
+                            children: [
+                              TileLayer(
+                                urlTemplate:
+                                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                userAgentPackageName: 'com.example.app',
+                              ),
+                              MarkerLayer(
+                                markers: [
+                                  Marker(
+                                    point: FirstPageWidgetProvider.of(context)!
+                                        .model
+                                        .coord,
+                                    builder: (context) => const Icon(
+                                      Icons.pin_drop,
+                                      color: Colors.green,
+                                      size: 30.0,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }),
           ),
         ),
       ),
@@ -78,6 +167,6 @@ class FirstPageWidgetProvider extends InheritedWidget {
 
   @override
   bool updateShouldNotify(FirstPageWidgetProvider oldWidget) {
-    return model != oldWidget.model;
+    return model.coord != oldWidget.model.coord;
   }
 }

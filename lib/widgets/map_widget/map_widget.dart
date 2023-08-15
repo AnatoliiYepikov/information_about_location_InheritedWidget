@@ -29,12 +29,11 @@ class _MapWidgetState extends State<MapWidget> {
                 return IconButton(
                   iconSize: constraints.maxHeight,
                   onPressed: () async {
-                    mapController.move(coord, mapController.zoom);
                     FirstPageWidgetProvider.of(context)!.model.coord =
                         await determinePosition().then((LatLng position) {
                       return LatLng(position.latitude, position.longitude);
                     });
-
+                    mapController.move(coord, mapController.zoom);
                     setState(() {});
                   },
                   icon: Image.asset(
@@ -42,7 +41,7 @@ class _MapWidgetState extends State<MapWidget> {
                   ),
                 );
               }),
-              ButtonWidget(),
+              const ButtonWidget(),
             ],
           ),
         ),

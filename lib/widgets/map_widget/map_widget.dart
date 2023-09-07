@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:information_about_location_inheritedwidget/data/coordinates/coordinates.dart';
-import 'package:information_about_location_inheritedwidget/main.dart';
+import 'package:information_about_location_inheritedwidget/logic/inherited_notifier.dart';
+
 import 'package:information_about_location_inheritedwidget/widgets/button_widget/button_widget.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -17,7 +18,7 @@ class _MapWidgetState extends State<MapWidget> {
 
   @override
   Widget build(BuildContext context) {
-    LatLng coord = FirstPageWidgetProvider.of(context)!.model.coord;
+    LatLng coord = CoordinatesStateNotifier.of(context).coordinates!;
     return Column(
       children: [
         Expanded(
@@ -29,7 +30,7 @@ class _MapWidgetState extends State<MapWidget> {
                 return IconButton(
                   iconSize: constraints.maxHeight,
                   onPressed: () async {
-                    FirstPageWidgetProvider.of(context)!.model.coord =
+                    CoordinatesStateNotifier.of(context).coordinates =
                         await determinePosition().then((LatLng position) {
                       return LatLng(position.latitude, position.longitude);
                     });
@@ -52,7 +53,7 @@ class _MapWidgetState extends State<MapWidget> {
             options: MapOptions(
               onTap: (tapPosition, point) {
                 mapController.move(point, mapController.zoom);
-                FirstPageWidgetProvider.of(context)?.model.coord =
+                CoordinatesStateNotifier.of(context).coordinates =
                     LatLng(point.latitude, point.longitude);
                 setState(() {});
               },
